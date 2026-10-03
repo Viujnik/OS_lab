@@ -2,9 +2,9 @@ child1.dSYM
 child2.dSYM
 cmake-build-debug
 main.dSYM
-child1
-child2
-main
+src/child1
+src/child2
+src/main
 trace_output-2.txt
 .DS_Store
 .idea/
