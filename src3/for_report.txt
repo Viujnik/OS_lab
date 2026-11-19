@@ -1,0 +1,35 @@
+=== Зависимости ELF (readelf) ===
+ 0x0000000000000001 (NEEDED)             Shared library: [liblab5_impl1.so]
+ 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]
+ 0x0000000000000001 (NEEDED)             Shared library: [ld-linux-aarch64.so.1]
+---
+ 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]
+ 0x0000000000000001 (NEEDED)             Shared library: [ld-linux-aarch64.so.1]
+
+=== Загрузка в lab5_linked (до main) ===
+2:openat(AT_FDCWD, "/app/liblab5_impl1.so", O_RDONLY|O_CLOEXEC) = 3
+
+=== Загрузка и выгрузка в lab5_runtime (1 -> 2 -> 1) ===
+7:munmap(0xffffad0ff000, 4096)            = 0
+8:munmap(0xffffad2ce000, 60992)           = 0
+12:munmap(0xffffad311000, 6587)            = 0
+13:openat(AT_FDCWD, "./liblab5_impl1.so", O_RDONLY|O_CLOEXEC) = 3
+16:munmap(0xffffad0cf000, 4096)            = 0
+17:munmap(0xffffad0f1000, 57392)           = 0
+24:munmap(0xffffacfff000, 4096)            = 0
+25:munmap(0xffffad0c1000, 57368)           = 0
+27:munmap(0xffffad311000, 6587)            = 0
+28:openat(AT_FDCWD, "./liblab5_impl2.so", O_RDONLY|O_CLOEXEC) = 3
+31:munmap(0xffffacfcf000, 4096)            = 0
+32:munmap(0xffffacff1000, 57376)           = 0
+34:munmap(0xffffad0d0000, 131120)          = 0
+35:munmap(0xffffad000000, 786456)          = 0
+36:openat(AT_FDCWD, "./liblab5_impl1.so", O_RDONLY|O_CLOEXEC) = 3
+39:munmap(0xffffad0cf000, 4096)            = 0
+40:munmap(0xffffad0f1000, 57392)           = 0
+47:munmap(0xffffacfff000, 4096)            = 0
+48:munmap(0xffffad0c1000, 57368)           = 0
+50:munmap(0xffffad311000, 6587)            = 0
+51:munmap(0xffffacfd0000, 131104)          = 0
+52:munmap(0xffffad0d0000, 131120)          = 0
+53:munmap(0xffffad000000, 786456)          = 0
