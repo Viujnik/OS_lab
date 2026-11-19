@@ -14,7 +14,7 @@ void error_exit(const char *func_name, const char *error_msg) {
 }
 
 size_t read_msg(char **msg) {
-    size_t msg_len = 0;
+    size_t msg_len = 0
     const ssize_t read_res = getline(msg, &msg_len, stdin);
 
     if (read_res == -1) {
