@@ -1,4 +1,4 @@
-#include <stdio.h>  /* fputs и stderr для сообщения об ошибке команды */
+#include <stdio.h>  /* fputs и stderr */
 #include <stdlib.h> /* коды завершения процесса */
 
 #include "cli.h"

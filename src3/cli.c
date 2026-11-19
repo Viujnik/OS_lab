@@ -1,12 +1,11 @@
-/* Открывает объявления POSIX, в частности getline, в строгом режиме C11. */
 #define _POSIX_C_SOURCE 200809L
-#include <errno.h>     /* errno и признак выхода за диапазон ERANGE */
-#include <limits.h>    /* максимальное значение int — INT_MAX */
-#include <math.h>      /* проверка результата isfinite */
-#include <stdio.h>     /* stdin, stdout, stderr и функции ввода-вывода */
+#include <errno.h>     /* ERANGE */
+#include <limits.h>    /* INT_MAX */
+#include <math.h>      /* isfinite */
+#include <stdio.h>     /* stdin, stdout, stderr и тп */
 #include <stdlib.h>    /* strtol и free */
 #include <string.h>    /* memchr, strcmp и strtok */
-#include <sys/types.h> /* знаковый тип длины ssize_t */
+#include <sys/types.h> /* ssize_t */
 
 #include "cli.h"
 
@@ -17,9 +16,6 @@ static int parse_positive_int(const char *text, int *number) {
     if (text == NULL)
         return 0;
 
-    /* strtol читает основание 10 и записывает в end адрес первого
-       непрочитанного байта. errno обнуляем перед вызовом, иначе он
-       может содержать ошибку от предыдущей операции. */
     char *end;
     errno = 0;
     long value = strtol(text, &end, 10);
@@ -31,7 +27,6 @@ static int parse_positive_int(const char *text, int *number) {
         value <= 0 || value > INT_MAX)
         return 0;
 
-    /* Теперь сужение безопасно. Звёздочка даёт доступ к int вызывающего. */
     *number = (int) value;
     return 1;
 }
@@ -51,8 +46,6 @@ int read_command(int *number) {
     const char *spaces = " \t\r\n\v\f";
     int command;
 
-    /* Условие 1 истинно. Из цикла выходим через break; continue начинает
-       очередное чтение. Так можно пропускать ошибки и пустые строки. */
     while (1) {
         /* &line и &capacity — адреса самих переменных. getline обновляет
            обе, например если старый буфер мал. Возвращает число прочитанных
@@ -69,30 +62,15 @@ int read_command(int *number) {
             break;
         }
 
-        /* Ищем '\0' ровно среди length полученных байтов. Ноль, который
-           getline сам дописал после них, в поиск не входит. Внутренний
-           ноль скрыл бы от строковых функций хвост команды. */
         if (memchr(line, '\0', (size_t) length) != NULL) {
             fputs("Ошибка: нулевой байт во вводе.\n", stderr);
             continue;
         }
 
-        /* Первый strtok получает адрес строки. Он пропускает разделители,
-           возвращает адрес начала первого токена и ставит '\0' после него.
-           NULL при следующем вызове означает продолжить в этой же строке.
-           strtok помнит позицию внутри себя. Мы разбираем одну строку за раз.
-
-           Пример для "1 4\n". Буфер в динамической памяти, адрес условный:
-               адрес         0x9000  0x9001  0x9002  0x9003  0x9004
-               до strtok       '1'     ' '     '4'     '\n'    '\0'
-               после двух      '1'     '\0'    '4'     '\0'    '\0'
-           word = 0x9000, argument = 0x9002. Оба адреса ведут в line.
-           После free(line) использовать word и argument уже нельзя. */
         char *word = strtok(line, spaces);
         if (word == NULL)
             continue;
 
-        /* strcmp возвращает 0, только если обе строки одинаковы. */
         if (strcmp(word, "0") == 0)
             command = CHANGE_LIB;
         else if (strcmp(word, "1") == 0)
@@ -104,16 +82,12 @@ int read_command(int *number) {
             continue;
         }
 
-        /* Для 0 после номера больше ничего быть не должно. Для 1 и 2
-           нужен один int. Третий токен означал бы лишний аргумент. */
         char *argument = strtok(NULL, spaces);
         if (command == CHANGE_LIB) {
             if (argument != NULL) {
                 fputs("Ошибка: команда 0 вводится без аргументов.\n", stderr);
                 continue;
             }
-            /* || слева направо. Если число уже ошибочное, первый операнд
-               истинный и дополнительный вызов strtok не нужен. */
         } else if (!parse_positive_int(argument, number) ||
                    strtok(NULL, spaces) != NULL) {
             fputs("Ошибка: нужно одно положительное число типа int.\n", stderr);
@@ -122,8 +96,6 @@ int read_command(int *number) {
         break;
     }
 
-    /* Буфер принадлежит этой функции. В main уходит код команды и,
-       при 1 или 2, скопированное целое число. Адреса токенов не нужны. */
     free(line);
     return command;
 }
@@ -131,16 +103,11 @@ int read_command(int *number) {
 /* Принимает результат библиотеки. Возвращает 0 при ошибке вывода
    и 1, если приложение может прочитать следующую команду. */
 int print_result(float value) {
-    /* NAN — договорённость об ошибке аргумента при прямом вызове библиотеки.
-       CLI проверил вход раньше, поэтому здесь защищаем границу вывода. */
     if (!isfinite(value)) {
         fputs("Ошибка вычисления.\n", stderr);
         return 1;
     }
 
-    /* %.9g печатает до девяти значащих цифр. float в printf передаётся
-       как double. fflush отправляет буфер stdout сейчас, включая случай,
-       когда вывод перенаправлен. Оба вызова могут сообщить ошибку. */
     if (printf("%.9g\n", (double) value) < 0 || fflush(stdout) == EOF) {
         perror("stdout");
         return 0;
